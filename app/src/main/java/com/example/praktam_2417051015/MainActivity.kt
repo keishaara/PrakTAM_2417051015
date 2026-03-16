@@ -5,20 +5,32 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -39,16 +51,17 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
 @Composable
 fun DaftarMakananScreen() {
     val foods = FoodSource.dummyFood
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
@@ -90,12 +103,12 @@ fun DaftarMakananScreen() {
         Button(
             onClick = {
                 val randomMenu = foods.random()
-                println("Menu yang dipilih: ${randomMenu.nama}")
+                println("🎲 Menu yang dipilih: ${randomMenu.nama}")
             },
             modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {
             Text(
-                text = "Acak Menu Untuk Saya",
+                text = "🎲 Acak Menu Untuk Saya",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -105,26 +118,74 @@ fun DaftarMakananScreen() {
     }
 }
 
-
 @Composable
 fun DetailScreen(food: model.Food) {
-    Column(modifier = Modifier.fillMaxWidth().padding(8.dp),
-    )    {
-        Image(
-            painter = painterResource(id = food.imageRes),
-            contentDescription = food.nama,
-            modifier = Modifier.fillMaxWidth().height(250.dp),
-            contentScale = ContentScale.Crop
-        )
+    var isFavorite by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Image(
+                painter = painterResource(id = food.imageRes),
+                contentDescription = food.nama,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp),
+                contentScale = ContentScale.Crop
+            )
+
+            IconButton(
+                onClick = { isFavorite = !isFavorite },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+            ) {
+                Icon(
+                    imageVector = if (isFavorite)
+                        Icons.Filled.Favorite
+                    else
+                        Icons.Outlined.FavoriteBorder,
+                    contentDescription = "Favorite",
+                    tint = if (isFavorite)
+                        Color.Red
+                    else
+                        Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text(text = food.nama, fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+        Text(
+            text = food.nama,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
         Spacer(modifier = Modifier.height(4.dp))
 
-        Text(text = food.deskripsi, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 8.dp))
+        Text(
+            text = food.deskripsi,
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text(text = "Rp.${food.harga}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 8.dp))
+        Text(
+            text = "Rp ${food.harga}",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
         Spacer(modifier = Modifier.height(12.dp))
     }
 }
