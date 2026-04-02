@@ -45,8 +45,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.praktam_2417051015.ui.theme.PrakTAM_2417051015Theme
+import com.example.praktam_2417051015.ui.theme.RedFavorite
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,7 +102,7 @@ fun DaftarMakananScreen() {
 
                 Text(
                     text = "Masih bingung pilih menu?",
-                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                     textAlign = TextAlign.Center
@@ -119,7 +119,7 @@ fun DaftarMakananScreen() {
                 ) {
                     Text(
                         text = "🎲 Acak Menu Untuk Saya",
-                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -135,7 +135,10 @@ fun FoodRowItem(food: Food) {
     Card(
         modifier = Modifier.width(160.dp),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column {
             Image(
@@ -204,7 +207,7 @@ fun DetailScreen(food: Food) {
                             Icons.Outlined.FavoriteBorder,
                         contentDescription = "Favorite",
                         tint = if (isFavorite)
-                            Color.Red
+                            RedFavorite
                         else
                             Color.White,
                         modifier = Modifier.size(32.dp)
@@ -216,7 +219,7 @@ fun DetailScreen(food: Food) {
 
             Text(
                 text = food.nama,
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
@@ -225,7 +228,7 @@ fun DetailScreen(food: Food) {
 
             Text(
                 text = food.deskripsi,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
@@ -233,7 +236,9 @@ fun DetailScreen(food: Food) {
 
             Text(
                 text = "Rp ${food.harga}",
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
