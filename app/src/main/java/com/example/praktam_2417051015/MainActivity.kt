@@ -58,11 +58,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import com.example.praktam_2417051015.network.RetrofitClient
+import com.example.praktam_2417051015.data.api.RetrofitClient
 import com.example.praktam_2417051015.ui.theme.PrakTAM_2417051015Theme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import model.Food
+import com.example.praktam_2417051015.data.model.Food
+import com.example.praktam_2417051015.data.repository.FoodRepository
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,17 +79,21 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
+    var foods by remember { mutableStateOf<List<Food>> (emptyList())}
+
     NavHost(
         navController = navController,
         startDestination = "home"
     ) {
         composable("home") {
-            DaftarMakananScreen(navController = navController)
+            DaftarMakananScreen(navController = navController, onFoodsLoaded = { fetchedFoods ->
+                foods = fetchedFoods
+            })
         }
 
         composable("detail/{nama}") { backStackEntry ->
             val nama = backStackEntry.arguments?.getString("nama")
-            val food = RetrofitClient.cachedFoods.find { it.nama == nama }
+            val food = foods.find { it.nama == nama }
             if (food != null) {
                 DetailScreen(
                     food = food,
@@ -102,7 +107,7 @@ fun AppNavigation(navController: NavHostController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DaftarMakananScreen(navController: NavController) {
+fun DaftarMakananScreen(navController: NavController, onFoodsLoaded: (List<Food>) -> Unit = {}) {
     var foods by remember { mutableStateOf<List<Food>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
@@ -113,17 +118,14 @@ fun DaftarMakananScreen(navController: NavController) {
 
     var isRandoming by remember { mutableStateOf(false) }
 
+    val repository = remember { FoodRepository() }
+
     LaunchedEffect(Unit) {
-        try {
-            foods = RetrofitClient.instance.getFoods()
-            RetrofitClient.cachedFoods = foods
-            isLoading = false
-            isError = false
-        } catch (e: Exception) {
-            isLoading = false
-            isError = false
-            println("❌ Error fetching data: ${e.message}")
-        }
+        isLoading = true
+        foods = repository.getFoods()
+        isLoading = false
+        onFoodsLoaded(foods)
+        isError = foods.isEmpty()
     }
 
     Scaffold(

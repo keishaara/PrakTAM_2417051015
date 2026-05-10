@@ -1,6 +1,6 @@
-package com.example.praktam_2417051015.network
+package com.example.praktam_2417051015.data.api
 
-import model.Food
+import com.example.praktam_2417051015.data.model.Food
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
