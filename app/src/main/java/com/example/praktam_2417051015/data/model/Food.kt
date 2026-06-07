@@ -12,7 +12,7 @@ data class Food(
     @SerializedName("harga")
     val harga: Int,
 
-    @SerializedName("image_name")
+    @SerializedName("image_url")
     val imageUrl: String,
 
     val imageRes: Int = 0

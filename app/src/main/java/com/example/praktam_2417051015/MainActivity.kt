@@ -3,67 +3,31 @@ package com.example.praktam_2417051015
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
-import com.example.praktam_2417051015.data.api.RetrofitClient
+import com.example.praktam_2417051015.ui.screen.DaftarMakananScreen
+import com.example.praktam_2417051015.ui.screen.DetailScreen
+import com.example.praktam_2417051015.ui.screen.FavoriteScreen
+import com.example.praktam_2417051015.ui.screen.HistoryScreen
 import com.example.praktam_2417051015.ui.theme.PrakTAM_2417051015Theme
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import com.example.praktam_2417051015.data.model.Food
-import com.example.praktam_2417051015.data.repository.FoodRepository
+import com.example.praktam_2417051015.ui.viewmodel.FoodViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,445 +35,105 @@ class MainActivity : ComponentActivity() {
         setContent {
             PrakTAM_2417051015Theme {
                 val navController = rememberNavController()
-                AppNavigation(navController)
+                // Instantiate ViewModel at the highest level so it survives screen navigation
+                val foodViewModel: FoodViewModel = viewModel()
+                
+                AppNavigation(navController = navController, viewModel = foodViewModel)
             }
         }
     }
 }
 
 @Composable
-fun AppNavigation(navController: NavHostController) {
-    var foods by remember { mutableStateOf<List<Food>> (emptyList())}
+fun AppNavigation(navController: NavHostController, viewModel: FoodViewModel) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route?.substringBefore("/")
 
-    NavHost(
-        navController = navController,
-        startDestination = "home"
-    ) {
-        composable("home") {
-            DaftarMakananScreen(navController = navController, onFoodsLoaded = { fetchedFoods ->
-                foods = fetchedFoods
-            })
-        }
-
-        composable("detail/{nama}") { backStackEntry ->
-            val nama = backStackEntry.arguments?.getString("nama")
-            val food = foods.find { it.nama == nama }
-            if (food != null) {
-                DetailScreen(
-                    food = food,
-                    navController = navController,
-                    isFullScreen = true
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DaftarMakananScreen(navController: NavController, onFoodsLoaded: (List<Food>) -> Unit = {}) {
-    var foods by remember { mutableStateOf<List<Food>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-
-    var isError by remember { mutableStateOf(false)}
-
-    val coroutineScope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    var isRandoming by remember { mutableStateOf(false) }
-
-    val repository = remember { FoodRepository() }
-
-    LaunchedEffect(Unit) {
-        isLoading = true
-        foods = repository.getFoods()
-        isLoading = false
-        onFoodsLoaded(foods)
-        isError = foods.isEmpty()
-    }
+    val bottomBarRoutes = listOf("home", "favorite", "history")
+    val shouldShowBottomBar = bottomBarRoutes.contains(currentRoute)
 
     Scaffold(
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(40.dp),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Memuat menu...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            } else if (isError || foods.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "⚠️ Gagal Memuat Data",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Red
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Pastikan koneksi internet Anda menyala",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            } else {
-                Text(
-                    text = "🔥 Rekomendasi Populer",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.padding(bottom = 24.dp)
-                ) {
-                    items(foods) { food -> FoodRowItem(
-                            food = food,
-                            navController = navController
-                        )
-                    }
-                }
-
-                Text(
-                    text = "📋 Daftar Menu Lengkap",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(24.dp),
-                    contentPadding = PaddingValues(bottom = 24.dp)
-                ) {
-                    items(foods) { food -> FoodItem(
-                            food = food,
-                            navController = navController
-                        )
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Text(
-                            text = "Masih bingung pilih menu?",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-
-                        Button(
-                            onClick = {
-                                if (foods.isNotEmpty()) {
-                                    coroutineScope.launch {
-                                        isRandoming = true
-                                        delay(2000)
-                                        val randomMenu = foods.random()
-                                        snackbarHostState.showSnackbar(
-                                            "🎉 Rekomendasi untuk kamu: ${randomMenu.nama}!"
-                                        )
-                                        isRandoming = false
-                                    }
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            enabled = !isRandoming
-                        ) {
-                            if (isRandoming) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    strokeWidth = 2.dp
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Mencari rekomendasi...")
-                            } else {
-                                Text(
-                                    text = "🎲 Acak Menu Untuk Saya",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
+        bottomBar = {
+            if (shouldShowBottomBar) {
+                NavigationBar {
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
+                        label = { Text("Home") },
+                        selected = currentRoute == "home",
+                        onClick = {
+                            navController.navigate("home") {
+                                popUpTo("home") { inclusive = false }
+                                launchSingleTop = true
                             }
                         }
-
-                        Spacer(modifier = Modifier.height(24.dp))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun FoodRowItem(food: Food, navController: NavController) {
-    Card(
-        modifier = Modifier
-            .width(160.dp)
-            .clickable {
-                navController.navigate("detail/${food.nama}")
-            },
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Column {
-            AsyncImage(
-                model = food.imageUrl,
-                contentDescription = food.nama,
-                placeholder = painterResource(id = R.drawable.rendang),
-                error = painterResource(id = R.drawable.rendang),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp),
-                contentScale = ContentScale.Crop
-            )
-            Column(
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Text(
-                    text = food.nama,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Rp ${food.harga}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun FoodItem(food: Food, navController: NavController) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                navController.navigate("detail/${food.nama}")
-            },
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            AsyncImage(
-                model = food.imageUrl,
-                contentDescription = food.nama,
-                placeholder = painterResource(id = R.drawable.rendang),
-                error = painterResource(id = R.drawable.rendang),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = food.nama,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = food.deskripsi,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Rp ${food.harga}",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DetailScreen(
-    food: Food,
-    navController: NavController,
-    isFullScreen: Boolean = false
-) {
-    var isFavorite by remember { mutableStateOf(false) }
-
-    Scaffold(
-        topBar = {
-            if (isFullScreen) {
-                TopAppBar(
-                    title = { Text("Detail Makanan") },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Kembali"
-                            )
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Filled.Favorite, contentDescription = "Favorit") },
+                        label = { Text("Favorit") },
+                        selected = currentRoute == "favorite",
+                        onClick = {
+                            navController.navigate("favorite") {
+                                popUpTo("home") { inclusive = false }
+                                launchSingleTop = true
+                            }
                         }
-                    }
-                )
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Filled.DateRange, contentDescription = "Riwayat") },
+                        label = { Text("Riwayat") },
+                        selected = currentRoute == "history",
+                        onClick = {
+                            navController.navigate("history") {
+                                popUpTo("home") { inclusive = false }
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+                }
             }
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
+        // We use Modifier.padding(paddingValues) to push the NavHost content up
+        // above the BottomNavigationBar (so it doesn't overlap).
+        // Since DaftarMakananScreen and HistoryScreen have their own Scaffolds, 
+        // this nested padding handles the Bottom Nav spacing.
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.padding(paddingValues)
         ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+            composable("home") {
+                DaftarMakananScreen(
+                    navController = navController,
+                    viewModel = viewModel
                 )
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        AsyncImage(
-                            model = food.imageUrl,
-                            contentDescription = food.nama,
-                            placeholder = painterResource(id = R.drawable.rendang),
-                            error = painterResource(id = R.drawable.rendang),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(250.dp),
-                            contentScale = ContentScale.Crop
-                        )
-
-                        IconButton(
-                            onClick = { isFavorite = !isFavorite },
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (isFavorite)
-                                    Icons.Filled.Favorite
-                                else
-                                    Icons.Outlined.FavoriteBorder,
-                                contentDescription = "Favorite",
-                                tint = if (isFavorite)
-                                    Color.Red
-                                else
-                                    Color.White,
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = food.nama,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = food.deskripsi,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Rp ${food.harga}",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
             }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .align(Alignment.BottomCenter)
-            ) {
-                Spacer(modifier = Modifier.weight(1f))
+            composable("favorite") {
+                FavoriteScreen(
+                    navController = navController,
+                    viewModel = viewModel
+                )
+            }
 
-                Button(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                ) {
-                    Text(
-                        text = "← Kembali",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+            composable("history") {
+                HistoryScreen(
+                    viewModel = viewModel
+                )
+            }
+
+            composable("detail/{nama}") { backStackEntry ->
+                val nama = backStackEntry.arguments?.getString("nama")
+                val food = viewModel.foods.find { it.nama == nama }
+                if (food != null) {
+                    DetailScreen(
+                        food = food,
+                        navController = navController,
+                        viewModel = viewModel,
+                        isFullScreen = true
                     )
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DaftarMakananPreview() {
-    PrakTAM_2417051015Theme {
-        DaftarMakananScreen(navController = rememberNavController())
     }
 }

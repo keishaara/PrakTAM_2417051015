@@ -4,6 +4,6 @@ import com.example.praktam_2417051015.data.model.Food
 import retrofit2.http.GET
 
 interface ApiService {
-    @GET("menu_makanan.json") // Endpoint API Anda
+    @GET("menu_makanan.json")
     suspend fun getFoods(): List<Food>
 }
