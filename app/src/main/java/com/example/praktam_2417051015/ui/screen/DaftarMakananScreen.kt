@@ -56,11 +56,9 @@ fun DaftarMakananScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     
-    // State untuk Animasi Gacha
     var showGachaDialog by remember { mutableStateOf(false) }
     var gachaText by remember { mutableStateOf("...") }
 
-    // State untuk Filter Harga
     var selectedMaxPrice by remember { mutableStateOf<Int?>(null) }
     
     val filteredFoods = if (selectedMaxPrice == null) {
@@ -71,7 +69,7 @@ fun DaftarMakananScreen(
 
     if (showGachaDialog) {
         AlertDialog(
-            onDismissRequest = { /* Jangan biarkan user tutup manual saat ngacak */ },
+            onDismissRequest = { },
             title = {
                 Text(
                     text = "🎲 Mengacak Menu...",
@@ -100,7 +98,6 @@ fun DaftarMakananScreen(
             shape = RoundedCornerShape(24.dp)
         )
 
-        // Coroutine Effect khusus untuk Pop-up
         LaunchedEffect(Unit) {
             val iterations = 20
             val delayMs = 100L
@@ -208,7 +205,6 @@ fun DaftarMakananScreen(
                     contentPadding = PaddingValues(bottom = 24.dp)
                 ) {
                     item {
-                        // Section: Filter Harga
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)

@@ -35,7 +35,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             PrakTAM_2417051015Theme {
                 val navController = rememberNavController()
-                // Instantiate ViewModel at the highest level so it survives screen navigation
                 val foodViewModel: FoodViewModel = viewModel()
                 
                 AppNavigation(navController = navController, viewModel = foodViewModel)
@@ -93,10 +92,6 @@ fun AppNavigation(navController: NavHostController, viewModel: FoodViewModel) {
             }
         }
     ) { paddingValues ->
-        // We use Modifier.padding(paddingValues) to push the NavHost content up
-        // above the BottomNavigationBar (so it doesn't overlap).
-        // Since DaftarMakananScreen and HistoryScreen have their own Scaffolds, 
-        // this nested padding handles the Bottom Nav spacing.
         NavHost(
             navController = navController,
             startDestination = "home",
